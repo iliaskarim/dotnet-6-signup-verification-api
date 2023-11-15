@@ -6,7 +6,6 @@ using WebApi.Models.Accounts;
 
 public class AutoMapperProfile : Profile
 {
-    // mappings between model and entity objects
     public AutoMapperProfile()
     {
         CreateMap<Account, AccountResponse>();

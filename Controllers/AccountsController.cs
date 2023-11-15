@@ -18,6 +18,12 @@ public class AccountsController : BaseController
         _accountService = accountService;
     }
 
+    /*
+     Authenticate to get a JWT token and a refresh token
+     POST /accounts/authenticate - public route that accepts POST requests containing an
+     email and password in the body. On success a JWT access token is returned with basic
+     account details, and an HTTP Only cookie containing a refresh token.
+    */
     [AllowAnonymous]
     [HttpPost("authenticate")]
     public ActionResult<AuthenticateResponse> Authenticate(AuthenticateRequest model)
@@ -27,6 +33,12 @@ public class AccountsController : BaseController
         return Ok(response);
     }
 
+    /*
+     Use a refresh token to get a new JWT token
+     POST /accounts/refresh-token - public route that accepts POST requests containing a
+     cookie with a refresh token. On success a new JWT access token is returned with basic
+     account details, and an HTTP Only cookie containing a new refresh token.
+    */
     [AllowAnonymous]
     [HttpPost("refresh-token")]
     public ActionResult<AuthenticateResponse> RefreshToken()
@@ -37,6 +49,13 @@ public class AccountsController : BaseController
         return Ok(response);
     }
 
+    /*
+     Revoke a refresh token
+     POST /accounts/revoke-token - secure route that accepts POST requests containing a
+     refresh token either in the request body or in a cookie, if both are present priority is
+     given to the request body. On success the token is revoked and can no longer be used
+     to generate new JWT access tokens.
+    */
     [HttpPost("revoke-token")]
     public IActionResult RevokeToken(RevokeTokenRequest model)
     {
@@ -54,6 +73,13 @@ public class AccountsController : BaseController
         return Ok(new { message = "Token revoked" });
     }
 
+    /* 
+     Register a new account
+     POST /accounts/register - public route that accepts POST requests containing
+     account registration details. On success the account is registered and a verification
+     email is sent to the email address of the account, accounts must be verified before they
+     can authenticate.
+    */
     [AllowAnonymous]
     [HttpPost("register")]
     public IActionResult Register(RegisterRequest model)
@@ -62,6 +88,11 @@ public class AccountsController : BaseController
         return Ok(new { message = "Registration successful, please check your email for verification instructions" });
     }
 
+    /*
+     Verify an account
+     POST /accounts/verify-email - public route that accepts POST requests containing an
+     account verification token. On success the account is verified and can now login.
+    */
     [AllowAnonymous]
     [HttpPost("verify-email")]
     public IActionResult VerifyEmail(VerifyEmailRequest model)
@@ -70,6 +101,13 @@ public class AccountsController : BaseController
         return Ok(new { message = "Verification successful, you can now login" });
     }
 
+    /* 
+     Reset the password of an account step one
+     POST /accounts/forgot-password - public route that accepts POST requests containing
+     an account email address. On success a password reset email is sent to the email
+     address of the account. The email contains a single use reset token that is valid for one
+     day.
+    */
     [AllowAnonymous]
     [HttpPost("forgot-password")]
     public IActionResult ForgotPassword(ForgotPasswordRequest model)
@@ -78,6 +116,12 @@ public class AccountsController : BaseController
         return Ok(new { message = "Please check your email for password reset instructions" });
     }
 
+    /*
+     Reset the password of an account step two
+     POST /accounts/validate-reset-token - public route that accepts POST requests
+     containing a password reset token. A message is returned to indicate if the token is
+     valid or not.
+    */
     [AllowAnonymous]
     [HttpPost("validate-reset-token")]
     public IActionResult ValidateResetToken(ValidateResetTokenRequest model)
@@ -86,6 +130,12 @@ public class AccountsController : BaseController
         return Ok(new { message = "Token is valid" });
     }
 
+    /*
+     Reset the password of an account step three
+     POST /accounts/reset-password - public route that accepts POST requests containing
+     a reset token, password and confirm password. On success the account password is
+     reset.
+    */
     [AllowAnonymous]
     [HttpPost("reset-password")]
     public IActionResult ResetPassword(ResetPasswordRequest model)
@@ -94,6 +144,11 @@ public class AccountsController : BaseController
         return Ok(new { message = "Password reset successful, you can now login" });
     }
 
+    /*
+     Get a list of all accounts
+     GET /accounts - secure route restricted to the Admin role that accepts GET requests
+     and returns a list of all the accounts in the application.
+    */
     [Authorize(Role.Admin)]
     [HttpGet]
     public ActionResult<IEnumerable<AccountResponse>> GetAll()
@@ -102,6 +157,12 @@ public class AccountsController : BaseController
         return Ok(accounts);
     }
 
+    /*
+     Get account details
+     GET /accounts/{id} - secure route that accepts GET requests and returns the details of
+     the account with the specified id. The Admin role can access any account, the User role
+     can only access their own account.
+    */
     [HttpGet("{id:int}")]
     public ActionResult<AccountResponse> GetById(int id)
     {
@@ -113,6 +174,12 @@ public class AccountsController : BaseController
         return Ok(account);
     }
 
+    /*
+     Create an account
+     POST /accounts - secure route restricted to the Admin role that accepts POST requests
+     containing new account details. On success the account is created and automatically
+     verified.
+    */
     [Authorize(Role.Admin)]
     [HttpPost]
     public ActionResult<AccountResponse> Create(CreateRequest model)
@@ -121,6 +188,12 @@ public class AccountsController : BaseController
         return Ok(account);
     }
 
+    /*
+     Update an account
+     PUT /accounts/{id} - secure route that accepts PUT requests to update the details of
+     the account with the specified id. The Admin role can update any account including its
+     role, the User role can only update there own account details except for role.
+    */
     [HttpPut("{id:int}")]
     public ActionResult<AccountResponse> Update(int id, UpdateRequest model)
     {
@@ -136,6 +209,12 @@ public class AccountsController : BaseController
         return Ok(account);
     }
 
+    /*
+     Delete an account
+     DELETE /accounts/{id} - secure route that accepts DELETE requests to delete the
+     account with the specified id. The Admin role can delete any account, the User role can
+     only delete their own account.
+    */
     [HttpDelete("{id:int}")]
     public IActionResult Delete(int id)
     {
@@ -146,8 +225,6 @@ public class AccountsController : BaseController
         _accountService.Delete(id);
         return Ok(new { message = "Account deleted successfully" });
     }
-
-    // helper methods
 
     private void setTokenCookie(string token)
     {
